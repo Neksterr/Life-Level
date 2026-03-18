@@ -1,46 +1,183 @@
-# Getting Started with Create React App
+# Life Level (React)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## How To Structure React Projects From Beginner To Advanced
 
-## Available Scripts
+July 11, 2022
 
-In the project directory, you can run:
+### Category
+- React
+- Technical Discussion
 
-### `npm start`
+React is intentionally unopinionated, so folder structure becomes the guardrail for maintainability. This README explains three levels of src-based structure (simple, intermediate, advanced), and maps the final advanced layout to this repo's style.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+---
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Preface
 
-### `npm test`
+- The examples here only cover the `src/` folders.
+- Outside `src/`, project-level files (e.g. `public/`, Webpack/Vite config, test setup) vary by ecosystem.
+- Keep it consistent, predictable, and suited to team size.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 1 Simple Folder Structure (good for < 10–15 components)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Typical layout in `src/`
+- `components/`
+- `hooks/`
+- `__tests__/` (or colocated `*.test.tsx`)
+- `App.tsx`
+- `index.tsx`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Principles
+- All UI components in one place.
+- All custom hooks in one place.
+- Minimal enforced boundaries.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Pros
+- Very easy to start.
+- Great for prototypes and small apps.
 
-### `npm run eject`
+### Cons
+- Grows messy quickly.
+- No explicit place for images, utils, context, or feature code.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+---
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 2 Intermediate Folder Structure (scale-safe, page-centric)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Typical layout in `src/`
+- `assets/`
+- `components/` (e.g., `ui/`, `form/`)
+- `context/`
+- `data/`
+- `hooks/` (global/shared hooks)
+- `pages/`
+- `utils/`
+- `App.tsx`
+- `index.tsx`
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Notes
+- `pages/` holds page-scoped folders and logic.
+- Page-specific hooks and components are inside pages.
+- Shared items remain in global folders.
 
-## Learn More
+### Pros
+- Collocates route-level code.
+- Root `src/` is mostly high-level folders.
+- Testing via colocated `*.test.*` improves traceability.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Cons
+- Page boundaries break when logic is reused across pages.
+- Moving shared logic can require refactor to `components/hooks`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
+
+## 3 Advanced Folder Structure (feature-centric, large apps)
+
+### Target layout in `src/`
+- `features/` (by feature, each with subfolders and an index API)
+- `pages/` (thin pages that combine features)
+- `layouts/`
+- `components/` (generic UI controls)
+- `lib/` (facades for external libs, e.g. axios wrappers)
+- `services/` (API calls and backend interfaces)
+- `hooks/` (cross-feature hooks)
+- `context/` (app-wide context providers)
+- `utils/`
+- `assets/`
+- `data/`
+
+### Features folder pattern
+- `features/<feature>/` contains the feature’s own:
+  - `components/`
+  - `hooks/`
+  - `context/` (if needed)
+  - `services/` or `api/`
+  - `utils/`
+  - `index.ts` (public exports only)
+
+### Example import guard
+- Enforce via ESLint:
+  - `no-restricted-imports` from non-index paths:
+\`\`\`json
+{
+  "rules": {
+    "no-restricted-imports": ["error", {"patterns": ["@/features/*/*"]}]
+  }
+}
+\`\`\`
+
+### Paths for aliases
+- `tsconfig.json` / `jsconfig.json`:
+\`\`\`json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@features/*": ["src/features/*"],
+      "@components/*": ["src/components/*"],
+      "@lib/*": ["src/lib/*"]
+    }
+  }
+}
+\`\`\`
+
+### Pages in this model
+- `pages/` is thin and mostly assembles feature exports.
+- Feature business logic stays inside `features/`.
+
+### Layouts, lib, services
+- `layouts/` for app scaffolding components (sidebar, navbar, etc.)
+- `lib/` wraps third-party behavior (e.g., API client, date utilities)
+- `services/` holds concrete backend clients and data interaction patterns.
+
+### Pros
+- Features are bounded and composition-friendly.
+- Clean global public APIs via `features/<n>/index.ts`.
+- Easier to scale and keep private internals private.
+
+### Cons
+- More folders and learning curve.
+- Can be overkill for tiny apps.
+
+---
+
+## How this Repo Maps to Advanced Structure
+
+This project is built with Create React App + TypeScript and currently includes:
+- `src/App.tsx`
+- `src/index.tsx`
+- `src/App.css`, `src/index.css`
+
+### Recommended future expansion for this design
+- Add `src/features/` for vertical domain modules.
+- Add `src/pages/` for route containers.
+- Add `src/components/ui/`, `src/hooks/`, `src/lib/`, `src/services/`.
+
+> Keep small apps simple but keep the advanced layout in mind while growing.
+
+---
+
+## Quick start (existing folder)
+
+1. `npm install`
+2. `npm start`
+3. `npm test`
+
+---
+
+## Contributing
+
+- Follow existing folder patterns.
+- Declare new features in `src/features/` with a private API in `index.ts`.
+- Keep `src/pages/` light and declarative.
+
+---
+
+## Conclusion
+
+- Use simple structure for prototypes.
+- Adopt intermediate structure when you hit cross-page reuse.
+- Use advanced feature structure for larger, long-lived apps.
+- Good architecture avoids folders that outgrow one another.
